@@ -129,7 +129,7 @@ def get_all_station_data(datetime_start, datetime_end):
                 }
                 json[estacion[1]].append(structured_data)
 
-    return json #primera funcion :b
+    return json
 
 
 if __name__ == '__main__':
