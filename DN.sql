@@ -35,22 +35,6 @@ CREATE TABLE CALIDAD_DEL_AIRE(
     minima_temperatura_de_bulbo_humedo SMALLINT NOT NULL DEFAULT 999,
     indice_de_calor SMALLINT NOT NULL DEFAULT 999,
     maxima_del_indice_de_calor SMALLINT NOT NULL DEFAULT 999,
-    PM_1_promedio_media_hora FLOAT,
-    PM_2_5_promedio_media_hora FLOAT,
-    PM_10_promedio_media_hora FLOAT,
-    temperatura_promedio_media_hora FLOAT,
-    PM_1_promedio_hora FLOAT,
-    PM_2_5_promedio_hora FLOAT,
-    PM_10_promedio_hora FLOAT,
-    temperatura_promedio_hora FLOAT,
-    PM_1_promedio_dia FLOAT,
-    PM_2_5_promedio_dia FLOAT,
-    PM_10_promedio_dia FLOAT,
-    temperatura_promedio_dia FLOAT,
-    PM_1_promedio_mes FLOAT,
-    PM_2_5_promedio_mes FLOAT,
-    PM_10_promedio_mes FLOAT,
-    temperatura_promedio_mes FLOAT,
     PRIMARY KEY (fecha_y_hora, estacion),
     FOREIGN KEY (estacion) REFERENCES ESTACION_METEOROLOGICA(ID_meteorologica)
 );
@@ -60,3 +44,23 @@ VALUES ('Upiita-IPN', 19.511312393693427, -99.12656804392977);
 
 INSERT INTO ESTACION_METEOROLOGICA (estacion, latitud, longitud)
 VALUES ('Escom-IPN', 19.527658401819263, -99.14390068122486);
+
+INSERT INTO ESTACION_METEOROLOGICA (estacion, latitud, longitud)
+VALUES ('CDA-IPN', 19.43864945996537, -99.13835345802309);
+
+INSERT INTO ESTACION_METEOROLOGICA (estacion, latitud, longitud)
+VALUES ('ENCB-IPN', 19.500268202978788, -99.14504490899242);
+
+INSERT INTO ESTACION_METEOROLOGICA (estacion, latitud, longitud)
+VALUES ('Ozumba-Edomex', 19.03705008180552, -98.79686060353998);
+
+CREATE TABLE promedio_media_hora(
+    fecha_y_hora DATETIME,
+    estacion INTEGER,
+    PM_1_promedio_media_hora FLOAT NOT NULL,
+    PM_2_5_promedio_media_hora FLOAT NOT NULL,
+    PM_10_promedio_media_hora FLOAT NOT NULL,
+    temperatura_promedio_media_hora FLOAT NOT NULL,
+    PRIMARY KEY (fecha_y_hora, estacion),
+    FOREIGN KEY (estacion) REFERENCES ESTACION_METEOROLOGICA(ID_meteorologica)
+);

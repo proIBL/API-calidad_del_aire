@@ -6,6 +6,12 @@ import json
 
 app = Flask(__name__)
 
+def exist_data(table, datetime, id_estacion, cursor):
+    sql = f'SELECT EXISTS (SELECT 1 FROM {table} WHERE fecha_y_hora = %s AND estacion = %s)'
+    parameters = (datetime, id_estacion)
+    cursor.execute(sql, parameters)
+    return cursor.fetchone()[0]
+
 
 def get_csv_station(station, cursor):
     sql = 'Select ID_meteorologica from estacion_meteorologica where estacion = %s'
@@ -30,7 +36,7 @@ def insert_csv_data(reader, cursor, id_station):
               'maxima_temperatura_de_bulbo_humedo, minima_temperatura_de_bulbo_humedo, indice_de_calor, ' \
               'maxima_del_indice_de_calor'
 
-    sql = f"INSERT INTO calidad_del_aire ({columns}) VALUES ({placeholders})"
+    sql1 = f"INSERT INTO calidad_del_aire ({columns}) VALUES ({placeholders})"
 
     for row in reader:
         row.insert(1, id_station)
@@ -39,19 +45,23 @@ def insert_csv_data(reader, cursor, id_station):
             if i > 1:
                 row[i] = int(row[i])
 
-        cursor.execute(sql, row)
+        if not exist_data('calidad_del_aire', row[0], id_station, cursor):
+            cursor.execute(sql1, row)
 
 
 def insert_average_half_hour(cursor, id_station, datetime_start, datetime_end):
-    datetime_start = datetime.strptime(datetime_start, "%m/%d/%y %I:%M %p")
-    datetime_end = datetime.strptime(datetime_end, "%m/%d/%y %I:%M %p")
-    if datetime_start.minute == 0 or datetime_end.minute == 30:
-        datetime_start = datetime_start - timedelta(minutes=15)
-    if datetime_end.minute == 15 or datetime_end.minute == 45:
+    if datetime_start.minute == 15 or datetime_start.minute == 45: # si es posible, obtener los datos desde el 30 o 00 anterior
+        datetime_start_query = datetime_start - timedelta(minutes=15)
+    elif datetime_start.minute == 00 or datetime_start.minute == 30:
+        datetime_start_query = datetime_start - timedelta(minutes=30)
+
+    if datetime_end.minute == 15 or datetime_end.minute == 45:  # si es posible, obtener los datos hasta el 30 o 00 siguiente
         datetime_end = datetime_end + timedelta(minutes=15)
+    elif datetime_end.minute == 0 or datetime_end.minute == 30:
+        datetime_end = datetime_end + timedelta(minutes=30)
 
     sql = 'SELECT fecha_y_hora, PM_1, PM_2_5, PM_10, temperatura FROM calidad_del_aire WHERE fecha_y_hora BETWEEN %s AND %s AND estacion = %s'
-    parameters = (datetime_start, datetime_end, id_station)
+    parameters = (datetime_start_query, datetime_end, id_station)
     cursor.execute(sql, parameters)
     sql_response = cursor.fetchall()
 
@@ -59,22 +69,115 @@ def insert_average_half_hour(cursor, id_station, datetime_start, datetime_end):
     PM_2_5_average_half_hour = 0
     PM_10_average_half_hour = 0
     temp_average_half_hour = 0
+    divisor = 0
 
-    sql = 'UPDATE calidad_del_aire SET PM_1_promedio_media_hora = %s, PM_2_5_promedio_media_hora = %s, PM_10_promedio_media_hora = %s,temperatura_promedio_media_hora = %s WHERE fecha_y_hora = %s AND estacion = %s'
-
+    columns = 'fecha_y_hora, estacion, PM_1_promedio_media_hora, PM_2_5_promedio_media_hora, PM_10_promedio_media_hora, temperatura_promedio_media_hora'
+    placeholders = ', '.join(['%s'] * 6)
+    sql1 = f'INSERT INTO promedio_media_hora ({columns}) VALUES ({placeholders})'
+    sql2 = 'UPDATE promedio_media_hora SET PM_1_promedio_media_hora = %s, PM_2_5_promedio_media_hora = %s, PM_10_promedio_media_hora = %s, temperatura_promedio_media_hora = %s WHERE fecha_y_hora = %s AND estacion = %s'
 
     for row in sql_response:
         PM_1_average_half_hour += row[1]
         PM_2_5_average_half_hour += row[2]
         PM_10_average_half_hour += row[3]
         temp_average_half_hour += row[4]
-        if row[0].minute == 0 or row[0].minute == 30:
-            parameters = (PM_1_average_half_hour/2, PM_2_5_average_half_hour/2, PM_10_average_half_hour/2, temp_average_half_hour/2, row[0], id_station)
-            cursor.execute(sql, parameters)
+        divisor += 1
+        if not exist_data('calidad_del_aire', row[0] + timedelta(minutes=15), id_station, cursor) and not exist_data('calidad_del_aire', row[0] + timedelta(minutes=30), id_station, cursor):
+            if exist_data('promedio_media_hora', row[0], id_station, cursor):
+                # si existe
+                parameters2 = (PM_1_average_half_hour/divisor, PM_2_5_average_half_hour/divisor,
+                               PM_10_average_half_hour/divisor, temp_average_half_hour/divisor,
+                               row[0], id_station)
+                cursor.execute(sql2, parameters2)
+            else:
+                # si no existe
+                parameters1 = (row[0], id_station, PM_1_average_half_hour/divisor,
+                               PM_2_5_average_half_hour/divisor,
+                               PM_10_average_half_hour/divisor, temp_average_half_hour/divisor)
+                cursor.execute(sql1, parameters1)
             PM_1_average_half_hour = 0
             PM_2_5_average_half_hour = 0
             PM_10_average_half_hour = 0
             temp_average_half_hour = 0
+            divisor = 0
+        elif sql_response[0] == row and sql_response[0][0] == datetime_start - timedelta(minutes=30):
+            pass
+        elif row[0].minute == 0 or row[0].minute == 30:
+            if exist_data('promedio_media_hora', row[0] - timedelta(minutes=30), id_station, cursor):
+                # si existe
+                parameters2 = (PM_1_average_half_hour / divisor, PM_2_5_average_half_hour / divisor,
+                               PM_10_average_half_hour / divisor, temp_average_half_hour / divisor,
+                               row[0] - timedelta(minutes=30), id_station)
+                cursor.execute(sql2, parameters2)
+            else:
+                # si no existe
+                parameters1 = (row[0] - timedelta(minutes=30), id_station, PM_1_average_half_hour / divisor,
+                               PM_2_5_average_half_hour / divisor,
+                               PM_10_average_half_hour / divisor, temp_average_half_hour / divisor)
+                cursor.execute(sql1, parameters1)
+
+            PM_1_average_half_hour = row[1]
+            PM_2_5_average_half_hour = row[2]
+            PM_10_average_half_hour = row[3]
+            temp_average_half_hour = row[4]
+            divisor = 1
+        elif (row[0].minute == 15 or row[0].minute == 45) and not exist_data('calidad_del_aire', row[0] + timedelta(minutes=15), id_station, cursor):
+            if exist_data('promedio_media_hora', row[0] - timedelta(minutes=15), id_station, cursor):
+                # si existe
+                parameters2 = (PM_1_average_half_hour / divisor, PM_2_5_average_half_hour / divisor,
+                               PM_10_average_half_hour / divisor, temp_average_half_hour / divisor,
+                               row[0] - timedelta(minutes=15), id_station)
+                cursor.execute(sql2, parameters2)
+            else:
+                # si no existe
+                parameters1 = (row[0] - timedelta(minutes=15), id_station, PM_1_average_half_hour / divisor,
+                               PM_2_5_average_half_hour / divisor,
+                               PM_10_average_half_hour / divisor, temp_average_half_hour / divisor)
+                cursor.execute(sql1, parameters1)
+            PM_1_average_half_hour = 0
+            PM_2_5_average_half_hour = 0
+            PM_10_average_half_hour = 0
+            temp_average_half_hour = 0
+            divisor = 0
+
+
+
+def insert_average_hour(cursor, id_station, datetime_start, datetime_end):
+    if datetime_start.minute == 0:
+        datetime_start = datetime_start + timedelta(minutes=15)
+    elif datetime_start.minute == 45:
+        datetime_start = datetime_start + timedelta(minutes=30)
+
+    if datetime_end.minute == 15 or datetime_end.minute == 45:
+        datetime_end = datetime_end - timedelta(minutes=15)
+
+    sql = 'SELECT fecha_y_hora, PM_1_promedio_media_hora, PM_2_5_promedio_media_hora, PM_10_promedio_media_hora, temperatura_promedio_media_hora FROM calidad_del_aire WHERE fecha_y_hora BETWEEN %s AND %s AND estacion = %s AND PM_1_promedio_media_hora IS NOT NULL;'
+    parameters = (datetime_start, datetime_end, id_station)
+    cursor.execute(sql, parameters)
+    sql_response = cursor.fetchall()
+    print(sql_response)
+
+    sql = 'UPDATE calidad_del_aire SET PM_1_promedio_hora = %s, PM_2_5_promedio_hora = %s, PM_10_promedio_hora = %s,temperatura_promedio_hora = %s WHERE fecha_y_hora = %s AND estacion = %s'
+    PM_1_average_hour = 0
+    PM_2_5_average_hour = 0
+    PM_10_average_hour = 0
+    temp_average_hour = 0
+    divisor = 0
+
+    for row in sql_response:
+        PM_1_average_hour += row[1]
+        PM_2_5_average_hour += row[2]
+        PM_10_average_hour += row[3]
+        temp_average_hour += row[4]
+        divisor += 1
+        if row[0].minute == 0:
+            parameters = (PM_1_average_hour / divisor, PM_2_5_average_hour / divisor, PM_10_average_hour / divisor, temp_average_hour / divisor, row[0] - timedelta(hours=1), id_station)
+            cursor.execute(sql, parameters)
+            PM_1_average_hour = 0
+            PM_2_5_average_hour = 0
+            PM_10_average_hour = 0
+            temp_average_hour = 0
+            divisor = 0
 
 
 def insert_csv_to_db(csv_route):
@@ -102,8 +205,12 @@ def insert_csv_to_db(csv_route):
         file.seek(0)
         datetime_end_file = file.readlines()[-1].strip().split(',')[0]
 
+    datetime_start_file = datetime.strptime(datetime_start_file, "%m/%d/%y %I:%M %p")
+    datetime_end_file = datetime.strptime(datetime_end_file, "%m/%d/%y %I:%M %p")
 
     insert_average_half_hour(cursor, id_station, datetime_start_file, datetime_end_file)
+    # insert_average_hour(cursor, id_station, datetime_start_file, datetime_end_file)
+
     conn.commit()
     cursor.close()
     conn.close()

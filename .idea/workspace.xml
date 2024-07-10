@@ -4,7 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="5a999ca0-c10d-46d5-b4cf-fb8a7ffec9fb" name="Changes" comment="first commit">
+    <list default="true" id="5a999ca0-c10d-46d5-b4cf-fb8a7ffec9fb" name="Changes" comment="columnas agregadas, promedio media hora añadido">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/DN.sql" beforeDir="false" afterPath="$PROJECT_DIR$/DN.sql" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
@@ -133,7 +133,13 @@
       <workItem from="1719384023354" duration="1170000" />
       <workItem from="1719448516225" duration="22338000" />
       <workItem from="1719529528295" duration="7124000" />
-      <workItem from="1719542078685" duration="7788000" />
+      <workItem from="1719542078685" duration="8189000" />
+      <workItem from="1720216563137" duration="7614000" />
+      <workItem from="1720309389886" duration="2631000" />
+      <workItem from="1720339889574" duration="671000" />
+      <workItem from="1720469811127" duration="13986000" />
+      <workItem from="1720562685143" duration="5197000" />
+      <workItem from="1720646696370" duration="318000" />
     </task>
     <task id="LOCAL-00001" summary="first commit">
       <option name="closed" value="true" />
@@ -159,7 +165,15 @@
       <option name="project" value="LOCAL" />
       <updated>1719473849173</updated>
     </task>
-    <option name="localTasksCounter" value="4" />
+    <task id="LOCAL-00004" summary="columnas agregadas, promedio media hora añadido">
+      <option name="closed" value="true" />
+      <created>1719554251424</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1719554251424</updated>
+    </task>
+    <option name="localTasksCounter" value="5" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -167,10 +181,11 @@
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="first commit" />
-    <option name="LAST_COMMIT_MESSAGE" value="first commit" />
+    <MESSAGE value="columnas agregadas, promedio media hora añadido" />
+    <option name="LAST_COMMIT_MESSAGE" value="columnas agregadas, promedio media hora añadido" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/API_Calidad_del_aire$main.coverage" NAME="main Coverage Results" MODIFIED="1709441184028" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/API_Calidad_del_aire$API_Calidad_del_aire.coverage" NAME="API Calidad del aire Coverage Results" MODIFIED="1719553937017" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="" />
+    <SUITE FILE_PATH="coverage/API_Calidad_del_aire$API_Calidad_del_aire.coverage" NAME="API Calidad del aire Coverage Results" MODIFIED="1720575731794" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="" />
   </component>
 </project>
