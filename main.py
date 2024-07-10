@@ -144,40 +144,45 @@ def insert_average_half_hour(cursor, id_station, datetime_start, datetime_end):
 
 def insert_average_hour(cursor, id_station, datetime_start, datetime_end):
     if datetime_start.minute == 0:
-        datetime_start = datetime_start + timedelta(minutes=15)
-    elif datetime_start.minute == 45:
-        datetime_start = datetime_start + timedelta(minutes=30)
+        datetime_start_query = datetime_start - timedelta(hours=1)
+    else:
+        datetime_start_query = datetime_start - timedelta(minutes=datetime_start.minute)
+    datetime_end_query = datetime_end + timedelta(hours=1) - timedelta(minutes=datetime_end.minute)
+    datetime = datetime_start_query
 
-    if datetime_end.minute == 15 or datetime_end.minute == 45:
-        datetime_end = datetime_end - timedelta(minutes=15)
+    sql1 = 'SELECT PM_1, PM_2_5, PM_10, temperatura FROM calidad_del_aire WHERE fecha_y_hora BETWEEN %s AND %s AND estacion = %s ORDER BY fecha_y_hora ASC'
+    sql2 = 'UPDATE promedio_hora SET PM_1_promedio_hora = %s, PM_2_5_promedio_hora = %s, PM_10_promedio_hora = %s, temperatura_promedio_hora = %s WHERE fecha_y_hora = %s AND estacion = %s'
+    columns = 'fecha_y_hora, estacion, PM_1_promedio_hora, PM_2_5_promedio_hora, PM_10_promedio_hora, temperatura_promedio_hora'
+    placeholders = ', '.join(['%s'] * 6)
+    sql3 = f'INSERT INTO promedio_hora ({columns}) VALUES ({placeholders})'
 
-    sql = 'SELECT fecha_y_hora, PM_1_promedio_media_hora, PM_2_5_promedio_media_hora, PM_10_promedio_media_hora, temperatura_promedio_media_hora FROM calidad_del_aire WHERE fecha_y_hora BETWEEN %s AND %s AND estacion = %s AND PM_1_promedio_media_hora IS NOT NULL;'
-    parameters = (datetime_start, datetime_end, id_station)
-    cursor.execute(sql, parameters)
-    sql_response = cursor.fetchall()
-    print(sql_response)
-
-    sql = 'UPDATE calidad_del_aire SET PM_1_promedio_hora = %s, PM_2_5_promedio_hora = %s, PM_10_promedio_hora = %s,temperatura_promedio_hora = %s WHERE fecha_y_hora = %s AND estacion = %s'
-    PM_1_average_hour = 0
-    PM_2_5_average_hour = 0
-    PM_10_average_hour = 0
-    temp_average_hour = 0
-    divisor = 0
-
-    for row in sql_response:
-        PM_1_average_hour += row[1]
-        PM_2_5_average_hour += row[2]
-        PM_10_average_hour += row[3]
-        temp_average_hour += row[4]
-        divisor += 1
-        if row[0].minute == 0:
-            parameters = (PM_1_average_hour / divisor, PM_2_5_average_hour / divisor, PM_10_average_hour / divisor, temp_average_hour / divisor, row[0] - timedelta(hours=1), id_station)
-            cursor.execute(sql, parameters)
+    while datetime < datetime_end_query:
+        parameters1 = (datetime, datetime + timedelta(hours=1), id_station)
+        cursor.execute(sql1, parameters1)
+        sql_response = cursor.fetchall()
+        response_len = len(sql_response)
+        if response_len != 0:
             PM_1_average_hour = 0
             PM_2_5_average_hour = 0
             PM_10_average_hour = 0
             temp_average_hour = 0
-            divisor = 0
+            for row in sql_response:
+                PM_1_average_hour += row[0]
+                PM_2_5_average_hour += row[1]
+                PM_10_average_hour += row[2]
+                temp_average_hour += row[3]
+            if exist_data('promedio_hora', datetime, id_station, cursor):
+                parameters2 = (PM_1_average_hour / response_len, PM_2_5_average_hour / response_len,
+                               PM_10_average_hour / response_len, temp_average_hour / response_len,
+                               datetime, id_station)
+                cursor.execute(sql2, parameters2)
+            else:
+                parameters3 = (datetime, id_station, PM_1_average_hour / response_len,
+                               PM_2_5_average_hour / response_len,
+                               PM_10_average_hour / response_len, temp_average_hour / response_len)
+                cursor.execute(sql3, parameters3)
+
+        datetime += timedelta(hours=1)
 
 
 def insert_csv_to_db(csv_route):
@@ -209,7 +214,7 @@ def insert_csv_to_db(csv_route):
     datetime_end_file = datetime.strptime(datetime_end_file, "%m/%d/%y %I:%M %p")
 
     insert_average_half_hour(cursor, id_station, datetime_start_file, datetime_end_file)
-    # insert_average_hour(cursor, id_station, datetime_start_file, datetime_end_file)
+    insert_average_hour(cursor, id_station, datetime_start_file, datetime_end_file)
 
     conn.commit()
     cursor.close()
