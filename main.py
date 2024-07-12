@@ -14,7 +14,7 @@ def exist_data(table, datetime, id_estacion, cursor):
 
 
 def get_csv_station(station, cursor):
-    sql = 'Select ID_meteorologica from estacion_meteorologica where estacion = %s'
+    sql = 'Select ID_meteorologica from estacion_meteorologica where nombre_estacion = %s'
     cursor.execute(sql, (station,))
 
     sql_response = cursor.fetchall()
@@ -206,14 +206,14 @@ def insert_csv_to_db(csv_route):
 
         insert_csv_data(reader, cursor, id_station)
         file.seek(0)
-        datetime_start_file = file.readlines()[6].strip().split(',')[0]
+        datetime_start_file = file.readlines()[6].strip().split(',')[0].replace('"', '')
         file.seek(0)
-        datetime_end_file = file.readlines()[-1].strip().split(',')[0]
+        datetime_end_file = file.readlines()[-1].strip().split(',')[0].replace('"', '')
 
     datetime_start_file = datetime.strptime(datetime_start_file, "%m/%d/%y %I:%M %p")
     datetime_end_file = datetime.strptime(datetime_end_file, "%m/%d/%y %I:%M %p")
 
-    insert_average_half_hour(cursor, id_station, datetime_start_file, datetime_end_file)
+    #insert_average_half_hour(cursor, id_station, datetime_start_file, datetime_end_file)
     insert_average_hour(cursor, id_station, datetime_start_file, datetime_end_file)
 
     conn.commit()
@@ -247,7 +247,8 @@ def get_climate_data(datetime_start, datetime_end, estacion):
 
 @app.route("/")
 def menu():
-    insert_csv_to_db("C:\\Users\\Erwin\\Downloads\\datos calidad del aire upiita.csv")
+    insert_csv_to_db("C:\\Users\\Erwin\\Downloads\\UrbanDataLab_1-1-24_12-00_AM_1_Year_1720733515_v2.csv")
+    #insert_csv_to_db("C:\\Users\\Erwin\\Downloads\\datos calidad del aire upiita.csv")
     return jsonify({"mensaje": "okay"})
 
 
@@ -262,7 +263,7 @@ def get_all_station_data(datetime_start, datetime_end):
     )
 
     cursor = conn.cursor()
-    cursor.execute('Select ID_meteorologica, estacion from estacion_meteorologica')
+    cursor.execute('Select ID_meteorologica, nombre_ubicacion_estacion from estacion_meteorologica')
     sql_response = cursor.fetchall()
     conn.commit()
     cursor.close()

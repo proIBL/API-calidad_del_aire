@@ -4,7 +4,8 @@ USE CALIDAD_DEL_AIRE;
 
 CREATE TABLE ESTACION_METEOROLOGICA (
     ID_meteorologica INTEGER PRIMARY KEY AUTO_INCREMENT,
-    estacion VARCHAR(255) UNIQUE NOT NULL DEFAULT 'Sin nombre',
+    nombre_estacion VARCHAR(255) UNIQUE NOT NULL DEFAULT 'Sin nombre',
+    nombre_ubicacion_estacion VARCHAR(255) UNIQUE NOT NULL DEFAULT 'Sin nombre',
     latitud FLOAT NOT NULL DEFAULT 0 CHECK (latitud <= 85 AND latitud >= -85),
     longitud FLOAT NOT NULL DEFAULT 0 CHECK (longitud <= 180 AND longitud >= -180)
 );
@@ -39,20 +40,20 @@ CREATE TABLE CALIDAD_DEL_AIRE(
     FOREIGN KEY (estacion) REFERENCES ESTACION_METEOROLOGICA(ID_meteorologica)
 );
 
-INSERT INTO ESTACION_METEOROLOGICA (estacion, latitud, longitud)
-VALUES ('Upiita-IPN', 19.511312393693427, -99.12656804392977);
+INSERT INTO ESTACION_METEOROLOGICA (nombre_estacion, nombre_ubicacion_estacion, latitud, longitud)
+VALUES ('Upiita-IPN', 'Upiita-IPN', 19.511312393693427, -99.12656804392977);
 
-INSERT INTO ESTACION_METEOROLOGICA (estacion, latitud, longitud)
-VALUES ('Escom-IPN', 19.527658401819263, -99.14390068122486);
+INSERT INTO ESTACION_METEOROLOGICA (nombre_estacion, nombre_ubicacion_estacion, latitud, longitud)
+VALUES ('UrbanDataLab', 'Escom-IPN', 19.527658401819263, -99.14390068122486);
 
-INSERT INTO ESTACION_METEOROLOGICA (estacion, latitud, longitud)
-VALUES ('CDA-IPN', 19.43864945996537, -99.13835345802309);
+INSERT INTO ESTACION_METEOROLOGICA (nombre_estacion, nombre_ubicacion_estacion, latitud, longitud)
+VALUES ('CDA', 'CDA-IPN', 19.43864945996537, -99.13835345802309);
 
-INSERT INTO ESTACION_METEOROLOGICA (estacion, latitud, longitud)
+INSERT INTO ESTACION_METEOROLOGICA (nombre_ubicacion_estacion, latitud, longitud)
 VALUES ('ENCB-IPN', 19.500268202978788, -99.14504490899242);
 
-INSERT INTO ESTACION_METEOROLOGICA (estacion, latitud, longitud)
-VALUES ('Ozumba-Edomex', 19.03705008180552, -98.79686060353998);
+INSERT INTO ESTACION_METEOROLOGICA (nombre_estacion, nombre_ubicacion_estacion, latitud, longitud)
+VALUES ('Ozumba', 'Ozumba-Edomex', 19.03705008180552, -98.79686060353998);
 
 CREATE TABLE promedio_media_hora(
     fecha_y_hora DATETIME,
