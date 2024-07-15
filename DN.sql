@@ -76,3 +76,25 @@ CREATE TABLE promedio_hora(
     PRIMARY KEY (fecha_y_hora, estacion),
     FOREIGN KEY (estacion) REFERENCES ESTACION_METEOROLOGICA(ID_meteorologica)
 );
+
+CREATE TABLE promedio_dia(
+    fecha_y_hora DATETIME,
+    estacion INTEGER,
+    PM_1_promedio_dia FLOAT NOT NULL,
+    PM_2_5_promedio_dia FLOAT NOT NULL,
+    PM_10_promedio_dia FLOAT NOT NULL,
+    temperatura_promedio_dia FLOAT NOT NULL,
+    PRIMARY KEY (fecha_y_hora, estacion),
+    FOREIGN KEY (estacion) REFERENCES ESTACION_METEOROLOGICA(ID_meteorologica)
+);
+
+CREATE TABLE promedio_mes(
+    fecha_y_hora DATETIME,
+    estacion INTEGER,
+    PM_1_promedio_mes FLOAT NOT NULL,
+    PM_2_5_promedio_mes FLOAT NOT NULL,
+    PM_10_promedio_mes FLOAT NOT NULL,
+    temperatura_promedio_mes FLOAT NOT NULL,
+    PRIMARY KEY (fecha_y_hora, estacion),
+    FOREIGN KEY (estacion) REFERENCES ESTACION_METEOROLOGICA(ID_meteorologica)
+);
